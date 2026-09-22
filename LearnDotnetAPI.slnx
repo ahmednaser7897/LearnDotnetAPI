@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DotnetAPIBasics/DotnetAPIBasics.csproj" />
+  <Project Path="ServiceConsumer/ServiceConsumer.csproj" Id="a107a48b-5d47-4eec-b799-fd891ce815e9" />
 </Solution>

@@ -16,7 +16,7 @@ public class DepartmentRepository : IDepartmentRepository
 
     public Department? GetById(int id)
     {
-        return context.Departments.Find(id);
+        return context.Departments.Include(e => e.Employees).FirstOrDefault(e => e.Id == id);
     }
     public Department? GetByName(string name)
     {

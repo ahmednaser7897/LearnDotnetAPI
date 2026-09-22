@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 namespace DotnetAPIBasics.Models;
 
 public class Employee
@@ -20,6 +21,7 @@ public class Employee
     [RegularExpression("^[a-zA-Z0-9 ]*$", ErrorMessage = "Address can only contain letters and spaces")]
     public string Address { get; set; } = null!;
     public int? DepartmentId { get; set; }
+    [JsonIgnore]
     public Department? Department { get; set; }
     public override string ToString()
     {
