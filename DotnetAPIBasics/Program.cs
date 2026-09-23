@@ -1,3 +1,6 @@
+using System.Text;
+using DotnetAPIBasics.Filters;
+using DotnetAPIBasics.Middlewares;
 using DotnetAPIBasics.Models;
 using DotnetAPIBasics.Models.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,27 +8,93 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Text;
 namespace DotnetAPIBasics;
 
 public static class Program
 {
     public static void Main(string[] args)
     {
+        //------------------------------------------------
+        //Create Builder
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        //------------------------------------------------
+        // Add services to the container (Inversion of Control).
+        //see: DotnetAPIBasics/DependencyInjection.cs
+        // we have 3 types of servises
+        // 1- Framwork Services: already dclared and registered in the container:ex:ILogger,IConfiguration;
+        // 2- Built in servises : already dclared but not registered in the container :ex:AddDbContext,AddIdentity,AddJWTAuthentication,AddCors;
+        // 3- Custom Servises :  not dclared and not registered in the container :ex:IEmployeeRepository,IDepartmentRepository;
 
+        //Built in servises
+        AddControllers(builder);
+        //Built in servises
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddOpenApi();
+        builder.Services.AddEndpointsApiExplorer();
+
+        //Built in servises
+        AddSwaggerGen(builder);
+        AddDbContext(builder);
+
+        //Custom servises
+        AddCustomServises(builder);
+
+        //Built in servises
+        AddIdentity(builder);
+        AddJWTAuthentication(builder);
+        AddCors(builder);
+
+        //------------------------------------------------
+        // Building the Application 
+        var app = builder.Build();
+
+        //------------------------------------------------
+        //Configuring the HTTP request pipeline (Middleware)
+
+
+        app.UseStaticFiles();
+        app.UseCors("AllowAll");
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+        app.UseMiddleware<ProfilingMiddleware>();
+        app.UseMiddleware<RateLimitingMiddleware>();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+
+        app.MapControllers();
+
+        app.Run();
+    }
+
+    private static void AddControllers(WebApplicationBuilder builder)
+    {
         //builder.Services.AddControllers();
         // Disable the automatic validation of the model state 
         // which returns 400 Bad Request
         // and enable the custom validation.
-        builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+        builder.Services.AddControllers(
+        // apply filter to all controllers
+        //  options =>
+        //  {
+        //      // options.Filters.Add<LogActivityFilterAttribute>();
+        //      // options.Filters.Add<HandelErorrAttribute>();
+        //  }
+        ).ConfigureApiBehaviorOptions(options =>
             options.SuppressModelStateInvalidFilter = true
         );
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
-        builder.Services.AddEndpointsApiExplorer();
+    }
+
+    private static void AddSwaggerGen(WebApplicationBuilder builder)
+    {
+        // we a
         //builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerGen(options =>
         {
@@ -46,12 +115,33 @@ public static class Program
                         []
                 });
         });
+    }
 
-        //add DbContext and repositories to the container
+    private static void AddDbContext(WebApplicationBuilder builder)
+    {
+        //for entity framework (DbContext)
+        //add DbContext to the container
         builder.Services.AddDbContext<AppDbContext>(
             options => options.UseSqlServer(ConnectionString.LoadConnectionString())
         );
-        //------------------------------------------------------------------
+    }
+
+    private static void AddCustomServises(WebApplicationBuilder builder)
+    {
+        //add custom services to the container
+        //Custom Servises : not dclared and not registered in the container
+        //AddSingleton() => create only one object for the service and share it accross the application 
+        //builder.Services.AddSingleton<IEmployeeRepository, EmployeeRepository>();
+        //AddScoped() => create one object for the service and share it accross the request pipeline 
+        //builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        //AddTransient() => create new object for the service for each request 
+        //for Repositories
+        builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+    }
+
+    private static void AddIdentity(WebApplicationBuilder builder)
+    {
         //For Authentication
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
         options =>
@@ -64,6 +154,11 @@ public static class Program
             options.Password.RequireNonAlphanumeric = true;
         }
         ).AddEntityFrameworkStores<AppDbContext>();
+    }
+
+    private static void AddJWTAuthentication(WebApplicationBuilder builder)
+    {
+
         //for JWT Authentication 
         //This configuration is applied when the application starts and is used by the application to authenticate requests.
         builder.Services.AddAuthentication(
@@ -106,10 +201,10 @@ public static class Program
 
               }
           );
-        //------------------------------------------------------------------
-        builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-        builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+    }
 
+    private static void AddCors(WebApplicationBuilder builder)
+    {
         // this line add the cors policy to the container and this enable cross-origin requests
         // from the frontend (Angular in this case) to the backend (ASP.NET Core API).
         builder.Services.AddCors(options =>
@@ -121,26 +216,7 @@ public static class Program
                 policy.AllowAnyHeader();
             });
         });
-
-        var app = builder.Build();
-
-        app.UseStaticFiles();
-        app.UseCors("AllowAll");
-
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-
-        app.MapControllers();
-
-        app.Run();
     }
+
 }
 
