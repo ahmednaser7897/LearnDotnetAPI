@@ -1,10 +1,11 @@
 using DotnetAPIBasics.DTO;
 using DotnetAPIBasics.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAPIBasics.Controllers;
 
-
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 //http://localhost:5260/swagger/index.html

@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DotnetAPIBasics.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace DotnetAPIBasics.Models.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser> //: DbContext
 {
     public DbSet<Department> Departments { get; set; }
     public DbSet<Employee> Employees { get; set; }
