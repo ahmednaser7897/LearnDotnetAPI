@@ -8,7 +8,7 @@ internal static class ConnectionString
         var configuration = new ConfigurationBuilder()
         .AddJsonFile("appsettings.json")
         .Build();
-        var connectionString = configuration.GetSection("connectStrings").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
         return connectionString ?? "";
     }
 }

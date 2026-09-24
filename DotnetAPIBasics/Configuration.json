@@ -1,0 +1,8 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    }
+  },
+  "TestKey": "Value from Configuration.json"
+}
