@@ -18,28 +18,15 @@ public static class Program
         //Create Builder
         var builder = WebApplication.CreateBuilder(args);
         //------------------------------------------------
-        //The ASP.NET Has many prddifainde Sources to read main configurations from it
-        //like appsettings.json ,Environment Variables , user secrets,Command Line Arguments,Windows Registry
-        //we can add our own configuration source like :
-        //-Configuration.json
-        //in program.cs file:
-        //builder.Configuration.AddJsonFile("Configuration.json");
-        //then we can read from it like this:
-        //_configuration["TestKey"];
-        //this file will override all the previous configuration sources
-        builder.Configuration.AddJsonFile("Configuration.json");
-        //----------------------------------------------------
-        //read Attachment section in the appsettings.json file and bind it to AttachmentOptions class
-        //var attachmentOptions = builder.Configuration.GetSection("Attachment").Get<AttachmentOptions>();
-        //Inject AttachmentOptions class in the container
-        //builder.Services.AddSingleton<AttachmentOptions>(attachmentOptions!);
-        //this is th recommended way to bind configuration to the class
-        //it add the class to the container and we can inject it in the constructor using 
-        //1- IOptions<AttachmentOptions>
-        //2- IOptionSnapshot<AttachmentOptions>
-        //3- IOptionMonitor<AttachmentOptions>
-        builder.Services.Configure<AttachmentOptions>(builder.Configuration.GetSection("Attachment"));
+        //Set up logging
+        builder.Services.AddLogging(logger =>
+        {
+            //logger.AddConsole();
+            logger.AddDebug();
 
+        });
+        //------------------------------------------------
+        Configuration(builder);
         //------------------------------------------------
         // Add services to the container (Inversion of Control).
         //see: DotnetAPIBasics/DependencyInjection.cs
@@ -79,12 +66,12 @@ public static class Program
         app.UseCors("AllowAll");
 
         // Configure the HTTP request pipeline.
-        // if (app.Environment.IsDevelopment())
-        // {
-        app.MapOpenApi();
-        app.UseSwagger();
-        app.UseSwaggerUI();
-        //}
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
         app.UseMiddleware<ProfilingMiddleware>();
         app.UseMiddleware<RateLimitingMiddleware>();
         app.UseAuthentication();
@@ -94,6 +81,31 @@ public static class Program
         app.MapControllers();
 
         app.Run();
+    }
+
+    private static void Configuration(WebApplicationBuilder builder)
+    {
+        //The ASP.NET Has many prddifainde Sources to read main configurations from it
+        //like appsettings.json ,Environment Variables , user secrets,Command Line Arguments,Windows Registry
+        //we can add our own configuration source like :
+        //-Configuration.json
+        //in program.cs file:
+        //builder.Configuration.AddJsonFile("Configuration.json");
+        //then we can read from it like this:
+        //_configuration["TestKey"];
+        //this file will override all the previous configuration sources
+        builder.Configuration.AddJsonFile("Configuration.json");
+        //----------------------------------------------------
+        //read Attachment section in the appsettings.json file and bind it to AttachmentOptions class
+        //var attachmentOptions = builder.Configuration.GetSection("Attachment").Get<AttachmentOptions>();
+        //Inject AttachmentOptions class in the container
+        //builder.Services.AddSingleton<AttachmentOptions>(attachmentOptions!);
+        //this is th recommended way to bind configuration to the class
+        //it add the class to the container and we can inject it in the constructor using 
+        //1- IOptions<AttachmentOptions>
+        //2- IOptionSnapshot<AttachmentOptions>
+        //3- IOptionMonitor<AttachmentOptions>
+        builder.Services.Configure<AttachmentOptions>(builder.Configuration.GetSection("Attachment"));
     }
 
     private static void AddControllers(WebApplicationBuilder builder)
