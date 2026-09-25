@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="DotnetAPIBasicAuthentication/DotnetAPIBasicAuthentication.csproj" Id="63e2c714-c762-4f01-b5ac-e7fe06fed686" />
   <Project Path="DotnetAPIBasics/DotnetAPIBasics.csproj" />
+  <Project Path="DotnetAPIIdentityAuthentication/DotnetAPIIdentityAuthentication.csproj" Id="1bd54e37-2d30-4f00-9d90-1deed8bba07c" />
   <Project Path="ServiceConsumer/ServiceConsumer.csproj" Id="a107a48b-5d47-4eec-b799-fd891ce815e9" />
 </Solution>
