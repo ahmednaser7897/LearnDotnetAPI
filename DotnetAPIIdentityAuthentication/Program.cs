@@ -1,3 +1,4 @@
+using System.Text;
 using DotnetAPIIdentityAuthentication.Models;
 using DotnetAPIIdentityAuthentication.Models.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Text;
 namespace DotnetAPIIdentityAuthentication;
 
 public static class Program
@@ -24,7 +24,7 @@ public static class Program
 
         // });
         //------------------------------------------------
-        //Configuration(builder);
+        Configuration(builder);
         //------------------------------------------------
         // Add services to the container (Inversion of Control).
         //see: DotnetAPIIdentityAuthentication/DependencyInjection.cs
@@ -103,7 +103,7 @@ public static class Program
         //1- IOptions<AttachmentOptions>
         //2- IOptionSnapshot<AttachmentOptions>
         //3- IOptionMonitor<AttachmentOptions>
-        //builder.Services.Configure<AttachmentOptions>(builder.Configuration.GetSection("Attachment"));
+        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("jwt"));
     }
 
     private static void AddControllers(WebApplicationBuilder builder)
@@ -190,7 +190,7 @@ public static class Program
 
     private static void AddJWTAuthentication(WebApplicationBuilder builder)
     {
-
+        var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
         //for JWT Authentication 
         //This configuration is applied when the application starts and is used by the application to authenticate requests.
         builder.Services.AddAuthentication(
@@ -216,18 +216,20 @@ public static class Program
                   {
                       //this option is used to validate the issuer
                       ValidateIssuer = true,
+                      //this option is used to set the issuer
+                      ValidIssuer = jwtOptions!.Issuer,
                       //this option is used to validate the audience
                       ValidateAudience = true,
+                      //this option is used to set the audience
+                      ValidAudience = jwtOptions.Audience,
                       //this option is used to validate the lifetime
                       ValidateLifetime = true,
+                      //this option is used to set the lifetime
+                      ClockSkew = TimeSpan.FromMinutes(jwtOptions.LifeTime),
                       //this option is used to validate the issuer signing key
                       ValidateIssuerSigningKey = true,
-                      //this option is used to set the issuer
-                      ValidIssuer = builder.Configuration["jwt:issuer"],
-                      //this option is used to set the audience
-                      ValidAudience = builder.Configuration["jwt:audience"],
                       //this option is used to set the issuer signing key
-                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwt:key"] ?? ""))
+                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
 
                   };
 

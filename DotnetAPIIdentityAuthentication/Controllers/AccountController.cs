@@ -6,6 +6,7 @@ using DotnetAPIIdentityAuthentication.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 
 namespace DotnetAPIIdentityAuthentication.Controllers;
 
@@ -15,12 +16,12 @@ public class AccountController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IConfiguration _configuration;
-    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
+    private readonly IOptions<JwtOptions> _jwtOptions;
+    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IOptions<JwtOptions> jwtOptions)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _configuration = configuration;
+        _jwtOptions = jwtOptions;
     }
     [HttpPost("register")]
     public async Task<ActionResult<GenralResponse>> Register(RegisterDTO registerDTO)
@@ -98,19 +99,19 @@ public class AccountController : ControllerBase
                     climes.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
 
                     //Generatesigning Credentials
-                    var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:key"] ?? ""));
+                    var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.Key));
                     var signingCredentials = new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256);
 
                     //create the token
                     var jwtSecurityToken = new JwtSecurityToken(
                         //issuer: the server that create the token
-                        issuer: _configuration["jwt:issuer"],
+                        issuer: _jwtOptions.Value.Issuer,
                         //audience: the server that will accept the token
-                        audience: _configuration["jwt:audience"],
+                        audience: _jwtOptions.Value.Audience,
                         //claims: the claims that will be added to the token
                         claims: climes,
                         //expires: the expiration time of the token
-                        expires: DateTime.Now.AddHours(1),
+                        expires: DateTime.Now.AddMinutes(_jwtOptions.Value.LifeTime),
                         //signingCredentials: the credentials that will be used to sign the token
                         signingCredentials: signingCredentials
                     );

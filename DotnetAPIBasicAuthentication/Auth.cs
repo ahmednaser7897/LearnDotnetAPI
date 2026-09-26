@@ -27,4 +27,12 @@
             -> inherit from AuthenticationHandler<AuthenticationSchemeOptions>
             -> override HandleAuthenticateAsync method
             public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+        4. to get the logged in user in the controller
+            -> var userIdentity = User.Identity?.Name;
+            -> var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            -> var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            -> var claims = User.Claims;
+            -> Note : if the user is not authenticated, the User.Identity will be null
+            -> if the user is not authenticated, the User.FindFirst will return null
+            -> if the user is not authenticated, the User.Claims will return null  
 */
