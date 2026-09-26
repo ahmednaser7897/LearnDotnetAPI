@@ -1,4 +1,6 @@
+using DotnetAPIBasicAuthentication.Authentication;
 using DotnetAPIBasicAuthentication.Models.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 namespace DotnetAPIBasicAuthentication;
@@ -35,9 +37,14 @@ public static class Program
         builder.Services.AddOpenApi();
         builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddAuthentication().
+        AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
+
         //Built in servises
         AddSwaggerGen(builder);
         AddDbContext(builder);
+
+
 
         //Custom servises
         AddCustomServises(builder);
@@ -121,29 +128,25 @@ public static class Program
 
     private static void AddSwaggerGen(WebApplicationBuilder builder)
     {
-        // we a
-        //builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerGen(options =>
         {
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("Basic", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
                 Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
+                Scheme = "Basic",
                 In = ParameterLocation.Header,
-                Description = "Enter your JWT token"
+                Description = "Enter your username and password"
             });
 
             options.AddSecurityRequirement(document =>
                 new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecuritySchemeReference("Bearer", document)] =
+                    [new OpenApiSecuritySchemeReference("Basic", document)] =
                         []
                 });
         });
     }
-
     private static void AddDbContext(WebApplicationBuilder builder)
     {
         //for entity framework (DbContext)

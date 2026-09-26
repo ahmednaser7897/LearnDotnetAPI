@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DotnetAPIBasicAuthentication.DTO;
 using DotnetAPIBasicAuthentication.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -5,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAPIBasicAuthentication.Controllers;
 
-//[Authorize]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 //http://localhost:5260/swagger/index.html
@@ -18,6 +19,11 @@ public class EmployeeController(IEmployeeRepository EmployeeRepository) : Contro
     [HttpGet]
     public ActionResult<GenralResponse> GetAllEmployee()
     {
+        var userIdentity = User.Identity?.Name;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+
         var allEmployees = EmployeeRepository.GetAll();
         var response = new GenralResponse
         {
@@ -26,11 +32,18 @@ public class EmployeeController(IEmployeeRepository EmployeeRepository) : Contro
             Message = "Employees retrieved successfully",
             StatusCode = 200
         };
-        return Ok(response);
+        return Ok(new
+        {
+            userIdentity,
+            role,
+            id,
+            response
+        });
     }
 
     [HttpGet]
     [Route("{id:int}")]
+    [AllowAnonymous]
     public ActionResult<GenralResponse> GetByEmployeeId(int id)
     {
         var employee = EmployeeRepository.GetById(id);
